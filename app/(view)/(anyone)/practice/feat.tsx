@@ -3,4 +3,4 @@ function greetUser(name: string) {
   return `안녕하세요, ${name}님!`;
 }
 
-console.log(greetUser("효주"));
+console.log(greetUser("왜 안될까?"));
