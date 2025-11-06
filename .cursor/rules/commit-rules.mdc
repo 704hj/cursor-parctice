@@ -32,6 +32,7 @@ Message 앞에 Prefix를 추가하며, Message의 의도를 Prefix를 통해 알
 - Message 내용중 작성, 추가, 삭제 등 행위에 대한 단어는 가급적 사용하지 않는다
 - 예시: [FIX] 일부 개인정보가 파기되지 않는 이슈, [REMOVE] 개인정보 파기 기능 불필요 코드
 - 세부 설명이 필요할 경우, 한 줄 공백 후 하이픈 목록으로 작성한다
+- 한글 인코딩이 적용되지 않을 경우 영어로 작성한다
 
 ## 출력 형식
 
@@ -54,9 +55,10 @@ $env:LANG='ko_KR.UTF-8'; $env:LC_ALL='ko_KR.UTF-8'; git -c core.quotepath=false 
 
 - {세부내용 1}
 - {세부내용 2}"
-git push origin {현재 브랜치}
+  git push origin {현재 브랜치}
 
 **설명:**
+
 - `$env:LANG`, `$env:LC_ALL` : 환경 변수를 명시적으로 UTF-8로 설정하여 자식 프로세스의 인코딩 문제 해결
 - `core.quotepath=false` : 한글 경로명 정상 표시
 - PowerShell 네이티브 방식으로 Cursor를 통한 커밋 시 한글 인코딩 안정성 보장

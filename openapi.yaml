@@ -1,0 +1,291 @@
+openapi: 3.0.3
+info: { title: News API, version: 1.0.0 }
+servers:
+  - url: http://localhost:4010
+paths:
+  /news:
+    get:
+      summary: Get news list
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NewsList" }
+              examples:
+                default:
+                  value:
+                    items:
+                      - id: "art-001"
+                        title: "헤드라인"
+                        summary: "요약..."
+                        image: "https://picsum.photos/seed/1/600/338"
+  
+  /auth/signup:
+    post:
+      summary: 회원가입
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SignupRequest" }
+            examples:
+              default:
+                value:
+                  email: "user@example.com"
+                  password: "password123"
+                  name: "홍길동"
+      responses:
+        "201":
+          description: 회원가입 성공
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+              examples:
+                default:
+                  value:
+                    user:
+                      id: "user-001"
+                      email: "user@example.com"
+                      name: "홍길동"
+                      createdAt: "2025-01-15T10:00:00Z"
+                    accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "400":
+          description: 잘못된 요청 (이메일 형식 오류, 비밀번호 길이 등)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: 이미 존재하는 이메일
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  
+  /auth/login:
+    post:
+      summary: 로그인
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+            examples:
+              default:
+                value:
+                  email: "user@example.com"
+                  password: "password123"
+      responses:
+        "200":
+          description: 로그인 성공
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+              examples:
+                default:
+                  value:
+                    user:
+                      id: "user-001"
+                      email: "user@example.com"
+                      name: "홍길동"
+                      createdAt: "2025-01-15T10:00:00Z"
+                    accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "401":
+          description: 인증 실패 (이메일 또는 비밀번호 불일치)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  
+  /auth/logout:
+    post:
+      summary: 로그아웃
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: 로그아웃 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+              examples:
+                default:
+                  value:
+                    message: "로그아웃 되었습니다"
+        "401":
+          description: 인증 필요
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  
+  /auth/me:
+    get:
+      summary: 현재 로그인한 사용자 정보 조회
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: 사용자 정보 조회 성공
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+              examples:
+                default:
+                  value:
+                    id: "user-001"
+                    email: "user@example.com"
+                    name: "홍길동"
+                    createdAt: "2025-01-15T10:00:00Z"
+        "401":
+          description: 인증 필요
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  
+  /auth/refresh:
+    post:
+      summary: 액세스 토큰 갱신
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken: { type: string }
+            examples:
+              default:
+                value:
+                  refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        "200":
+          description: 토큰 갱신 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string }
+                  refreshToken: { type: string }
+              examples:
+                default:
+                  value:
+                    accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "401":
+          description: 유효하지 않은 리프레시 토큰
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    NewsList:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/NewsItem" }
+    
+    NewsItem:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        summary: { type: string }
+        image: { type: string, format: uri }
+    
+    # 인증 관련 스키마
+    SignupRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+          description: 이메일 (로그인 ID)
+        password:
+          type: string
+          minLength: 8
+          description: 비밀번호 (최소 8자)
+        name:
+          type: string
+          minLength: 2
+          description: 사용자 이름
+    
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: 이메일
+        password:
+          type: string
+          description: 비밀번호
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 사용자 ID
+        email:
+          type: string
+          format: email
+          description: 이메일
+        name:
+          type: string
+          description: 사용자 이름
+        createdAt:
+          type: string
+          format: date-time
+          description: 가입 일시
+    
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        accessToken:
+          type: string
+          description: JWT 액세스 토큰 (유효기간 1시간)
+        refreshToken:
+          type: string
+          description: JWT 리프레시 토큰 (유효기간 7일)
+    
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: 에러 메시지
+        code:
+          type: string
+          description: 에러 코드
