@@ -5,7 +5,7 @@ import { useState } from "react";
 
 /**
  * 회원가입 페이지
- * 
+ *
  * 이 컴포넌트는 순수하게 View만 담당합니다.
  * 모든 비즈니스 로직은 useSignup 커스텀 훅에서 처리됩니다.
  */
@@ -13,7 +13,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  
+
   const { mutate: signup, isPending, isSuccess, error } = useSignup();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -22,40 +22,52 @@ export default function SignupPage() {
   };
 
   return (
-    <main style={{ 
-      maxWidth: "400px", 
-      margin: "50px auto", 
-      padding: "20px" 
-    }}>
+    <main
+      style={{
+        maxWidth: "400px",
+        margin: "50px auto",
+        padding: "20px",
+      }}
+    >
       <h1 style={{ marginBottom: "30px" }}>회원가입</h1>
 
       {isSuccess && (
-        <div style={{ 
-          padding: "15px", 
-          marginBottom: "20px", 
-          backgroundColor: "#d4edda", 
-          color: "#155724",
-          borderRadius: "5px"
-        }}>
+        <div
+          style={{
+            padding: "15px",
+            marginBottom: "20px",
+            backgroundColor: "#d4edda",
+            color: "#155724",
+            borderRadius: "5px",
+          }}
+        >
           ✅ 회원가입이 완료되었습니다!
         </div>
       )}
 
       {error && (
-        <div style={{ 
-          padding: "15px", 
-          marginBottom: "20px", 
-          backgroundColor: "#f8d7da", 
-          color: "#721c24",
-          borderRadius: "5px"
-        }}>
+        <div
+          style={{
+            padding: "15px",
+            marginBottom: "20px",
+            backgroundColor: "#f8d7da",
+            color: "#721c24",
+            borderRadius: "5px",
+          }}
+        >
           ❌ {error.message}
         </div>
       )}
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold" }}>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "8px",
+              fontWeight: "bold",
+            }}
+          >
             이메일
           </label>
           <input
@@ -69,13 +81,19 @@ export default function SignupPage() {
               padding: "12px",
               border: "1px solid #ddd",
               borderRadius: "5px",
-              fontSize: "14px"
+              fontSize: "14px",
             }}
           />
         </div>
 
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold" }}>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "8px",
+              fontWeight: "bold",
+            }}
+          >
             비밀번호
           </label>
           <input
@@ -90,7 +108,7 @@ export default function SignupPage() {
               padding: "12px",
               border: "1px solid #ddd",
               borderRadius: "5px",
-              fontSize: "14px"
+              fontSize: "14px",
             }}
           />
           <small style={{ color: "#666", fontSize: "12px" }}>
@@ -99,7 +117,13 @@ export default function SignupPage() {
         </div>
 
         <div style={{ marginBottom: "30px" }}>
-          <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold" }}>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "8px",
+              fontWeight: "bold",
+            }}
+          >
             이름
           </label>
           <input
@@ -114,7 +138,7 @@ export default function SignupPage() {
               padding: "12px",
               border: "1px solid #ddd",
               borderRadius: "5px",
-              fontSize: "14px"
+              fontSize: "14px",
             }}
           />
           <small style={{ color: "#666", fontSize: "12px" }}>
@@ -134,7 +158,7 @@ export default function SignupPage() {
             borderRadius: "5px",
             fontSize: "16px",
             fontWeight: "bold",
-            cursor: isPending ? "not-allowed" : "pointer"
+            cursor: isPending ? "not-allowed" : "pointer",
           }}
         >
           {isPending ? "가입 중..." : "회원가입"}
@@ -150,4 +174,3 @@ export default function SignupPage() {
     </main>
   );
 }
-
