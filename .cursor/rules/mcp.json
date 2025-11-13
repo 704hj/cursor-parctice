@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "TalkToFigma": {
+      "command": "node",
+      "args": ["C:/Users/user/cursor-talk-to-figma-mcp-main/dist/server.js"]
+    },
+    "Notion": {
+      "url": "https://mcp.notion.com/mcp",
+      "headers": {}
+    }
+  }
+}
