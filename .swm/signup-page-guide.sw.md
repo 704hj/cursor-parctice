@@ -2,9 +2,16 @@
 title: 회원가입 기능 가이드
 ---
 
-# 👤 회원가입 페이지 구조
+# 👤 회원가입 기능 완전 가이드
 
-이 문서는 회원가입 기능의 전체 구조를 설명합니다. View와 비즈니스 로직을 분리한 클린 아키텍처를 사용합니다.
+이 문서는 **회원가입 기능의 전체 구조와 구현 방법**을 설명합니다.
+
+## 🎯 핵심 설계 원칙
+
+1. **관심사 분리**: View와 비즈니스 로직 완전 분리
+2. **타입 안전성**: OpenAPI 스펙 기반 자동 타입 생성
+3. **재사용성**: 커스텀 훅으로 로직 캡슐화
+4. **에러 처리**: React Query를 활용한 선언적 에러 처리
 
 ## 📂 파일 구조
 
@@ -42,7 +49,7 @@ export default function SignupPage() {
 
 </SwmSnippet>
 
-<SwmSnippet path="/app/signup/page.tsx" line="14">
+<SwmSnippet path="/app/signup/page.tsx" line="13">
 
 ---
 
@@ -71,7 +78,7 @@ const { mutate: signup, isPending, isSuccess, error } = useSignup();
 
 </SwmSnippet>
 
-<SwmSnippet path="/app/signup/page.tsx" line="20">
+<SwmSnippet path="/app/signup/page.tsx" line="19">
 
 ---
 
@@ -92,7 +99,7 @@ const handleSubmit = (e: React.FormEvent) => {
 
 </SwmSnippet>
 
-<SwmSnippet path="/app/signup/page.tsx" line="32">
+<SwmSnippet path="/app/signup/page.tsx" line="34">
 
 ---
 
@@ -175,13 +182,14 @@ export function useSignup() {
 
 ### 📖 useSignup의 책임
 
-<SwmSnippet path="/src/hooks/useAuth.ts" line="28">
+<SwmSnippet path="/src/hooks/useAuth.ts" line="27">
 
 ---
 
 #### 1\. API 호출 (`mutationFn`)
 
 ```typescript
+  return useMutation({
     mutationFn: (data: SignupRequest) => signup(data),
 ```
 
@@ -224,7 +232,7 @@ type SignupRequest = {
 
 </SwmSnippet>
 
-<SwmSnippet path="/src/hooks/useAuth.ts" line="38">
+<SwmSnippet path="/src/hooks/useAuth.ts" line="37">
 
 ---
 
@@ -255,21 +263,26 @@ queryClient.setQueryData(["auth", "me"], data.user);
 실제 API 호출 함수
 
 ```typescript
+// src/api/auth.ts
 import { api } from "./client";
-import { components } from "../types/api";
+import { components } from "@/src/types/api";
 
 type SignupRequest = components["schemas"]["SignupRequest"];
+type AuthResponse = components["schemas"]["AuthResponse"];
 
+/**
+ * 회원가입
+ */
 export async function signup(data: SignupRequest) {
-  const { data: result, error } = await api.POST("/auth/signup", {
+  const { data: response, error } = await api.POST("/auth/signup", {
     body: data,
   });
 
   if (error) {
-    throw new Error(error.message || "회원가입 실패");
+    throw new Error(error.message || "회원가입에 실패했습니다");
   }
 
-  return result;
+  return response as AuthResponse;
 }
 ```
 
@@ -289,7 +302,9 @@ export async function signup(data: SignupRequest) {
 
 ---
 
-회원가입 API 스펙
+### 회원가입 API 엔드포인트
+
+**POST /auth/signup**
 
 ```yaml
 /auth/signup:
@@ -310,11 +325,17 @@ export async function signup(data: SignupRequest) {
                 name: "홍길동"
 ```
 
+### 응답 코드
+
+- **201 Created**: 회원가입 성공
+- **400 Bad Request**: 유효하지 않은 입력 (이메일 형식 오류, 비밀번호 길이 등)
+- **409 Conflict**: 이미 존재하는 이메일
+
 ---
 
 </SwmSnippet>
 
-<SwmSnippet path="/openapi.yaml" line="189">
+<SwmSnippet path="/openapi.yaml" line="219">
 
 ---
 
@@ -352,6 +373,27 @@ SignupRequest:
 ---
 
 </SwmSnippet>
+
+### 📤 성공 응답 예시 (201 Created)
+
+```json
+{
+  "user": {
+    "id": "user-001",
+    "email": "user@example.com",
+    "name": "홍길동",
+    "createdAt": "2025-01-15T10:00:00Z"
+  },
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**응답 필드:**
+
+- `user`: 생성된 사용자 정보
+- `accessToken`: 1시간 유효한 액세스 토큰
+- `refreshToken`: 7일 유효한 리프레시 토큰
 
 ## 🔄 전체 데이터 흐름
 
@@ -402,13 +444,9 @@ export default function SignupPage() {
 
 ### ✅ 좋은 방식 (커스텀 훅으로 분리)
 
-<SwmSnippet path="/app/signup/page.tsx" line="19">
-
----
-
 컴포넌트는 단순하게!
 
-```typescript
+```19:22:app/signup/page.tsx
 const handleSubmit = (e: React.FormEvent) => {
   e.preventDefault();
   signup({ email, password, name });
@@ -466,6 +504,59 @@ function MyComponent() {
 - <SwmPath>[src/api/auth.ts](/src/api/auth.ts)</SwmPath> - API 호출 함수
 - <SwmPath>[openapi.yaml](/openapi.yaml)</SwmPath> - API 스펙 정의
 
+## 🚨 에러 처리
+
+### 1. API 에러 케이스
+
+#### 400 Bad Request - 유효하지 않은 입력
+
+```json
+{
+  "message": "이메일 형식이 올바르지 않습니다",
+  "code": "INVALID_EMAIL"
+}
+```
+
+**발생 원인:**
+
+- 이메일 형식 오류 (`format: email` 위반)
+- 비밀번호가 8자 미만 (`minLength: 8` 위반)
+- 이름이 2자 미만 (`minLength: 2` 위반)
+
+#### 409 Conflict - 이미 존재하는 이메일
+
+```json
+{
+  "message": "이미 가입된 이메일입니다",
+  "code": "EMAIL_ALREADY_EXISTS"
+}
+```
+
+### 2. 프론트엔드 에러 처리
+
+```typescript
+const { mutate: signup, error } = useSignup();
+
+// error 객체 구조
+error.message; // "이미 가입된 이메일입니다"
+```
+
+React Query가 자동으로 에러를 캐치하고 `error` 상태로 제공합니다.
+
+### 3. 사용자 친화적 에러 메시지
+
+```typescript
+const getErrorMessage = (error: Error) => {
+  if (error.message.includes("EMAIL_ALREADY_EXISTS")) {
+    return "이미 가입된 이메일입니다. 다른 이메일을 사용해주세요.";
+  }
+  if (error.message.includes("INVALID_EMAIL")) {
+    return "올바른 이메일 형식을 입력해주세요.";
+  }
+  return "회원가입에 실패했습니다. 다시 시도해주세요.";
+};
+```
+
 ## ⚠️ 주의사항
 
 1. **컴포넌트에 직접 API 호출 금지**
@@ -483,6 +574,12 @@ function MyComponent() {
    - `useSignup` 훅이 자동으로 토큰 저장
    - 수동으로 localStorage 조작하지 말 것
 
+4. **에러 처리**
+
+   - React Query의 `error` 객체를 활용
+   - 사용자에게 명확한 에러 메시지 제공
+   - 네트워크 에러와 서버 에러 구분
+
 ## 🚀 다음 단계
 
 이 패턴을 이해했다면:
@@ -490,5 +587,128 @@ function MyComponent() {
 - <SwmPath>[app/login/page.tsx](/app/login/page.tsx)</SwmPath> 로그인 페이지도 동일한 패턴
 - `useLogin`, `useLogout` 훅도 같은 구조
 - 다른 기능도 이 패턴으로 구현 가능!
+
+## 💡 베스트 프랙티스
+
+### 1. 폼 검증
+
+**클라이언트 사이드 검증 추가:**
+
+```typescript
+const validateEmail = (email: string) => {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email);
+};
+
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+
+  // 유효성 검사
+  if (!validateEmail(email)) {
+    alert("올바른 이메일 형식을 입력해주세요.");
+    return;
+  }
+
+  if (password.length < 8) {
+    alert("비밀번호는 최소 8자 이상이어야 합니다.");
+    return;
+  }
+
+  signup({ email, password, name });
+};
+```
+
+### 2. 로딩 상태 UX 개선
+
+```typescript
+<button disabled={isPending} style={{ opacity: isPending ? 0.5 : 1 }}>
+  {isPending ? "가입 중..." : "회원가입"}
+</button>
+```
+
+### 3. 성공 후 리다이렉트
+
+```typescript
+const router = useRouter();
+
+const { mutate: signup, isSuccess } = useSignup();
+
+useEffect(() => {
+  if (isSuccess) {
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 1500); // 1.5초 후 대시보드로 이동
+  }
+}, [isSuccess, router]);
+```
+
+### 4. 비밀번호 강도 표시
+
+```typescript
+const getPasswordStrength = (password: string) => {
+  if (password.length < 8) return "약함";
+  if (password.length < 12) return "보통";
+  return "강함";
+};
+```
+
+## 📊 디버깅 팁
+
+### React Query DevTools 활용
+
+```typescript
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+
+function App() {
+  return (
+    <>
+      {/* 앱 컴포넌트 */}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </>
+  );
+}
+```
+
+**확인할 수 있는 정보:**
+
+- API 요청/응답 상태
+- 캐시된 데이터
+- 에러 정보
+- 리렌더링 트리거
+
+### 네트워크 탭 확인
+
+브라우저 개발자 도구의 Network 탭에서:
+
+- **Request Payload**: 보낸 데이터 확인
+- **Response**: 서버 응답 확인
+- **Status Code**: HTTP 상태 코드 확인
+
+## 🔐 보안 고려사항
+
+1. **비밀번호는 절대 로깅하지 않기**
+
+   ```typescript
+   // ❌ 절대 금지
+   console.log("Password:", password);
+
+   // ✅ 로깅 필요시
+   console.log("Form submitted with email:", email);
+   ```
+
+2. **HTTPS 사용 필수**
+
+   - 프로덕션에서는 반드시 HTTPS 사용
+   - HTTP로는 민감한 정보 전송 금지
+
+3. **토큰 저장 주의**
+   - `localStorage`는 XSS 공격에 취약
+   - 더 안전한 방법: `httpOnly` 쿠키 사용 고려
+
+## 📚 참고 문서
+
+- [React Query 공식 문서](https://tanstack.com/query/latest)
+- [OpenAPI Specification](https://swagger.io/specification/)
+- [Next.js 공식 문서](https://nextjs.org/docs)
 
 <SwmMeta version="3.0.0" repo-id="Z2l0aHViJTNBJTNBY3Vyc29yLXBhcmN0aWNlJTNBJTNBNzA0aGo=" repo-name="cursor-parctice"><sup>Powered by [Swimm](https://app.swimm.io/)</sup></SwmMeta>
