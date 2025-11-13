@@ -20,7 +20,7 @@ paths:
                         title: "헤드라인"
                         summary: "요약..."
                         image: "https://picsum.photos/seed/1/600/338"
-  
+
   /auth/signup:
     post:
       summary: 회원가입
@@ -63,7 +63,7 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
-  
+
   /auth/login:
     post:
       summary: 로그인
@@ -100,7 +100,7 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
-  
+
   /auth/logout:
     post:
       summary: 로그아웃
@@ -126,7 +126,7 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
-  
+
   /auth/me:
     get:
       summary: 현재 로그인한 사용자 정보 조회
@@ -152,7 +152,7 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
-  
+
   /auth/refresh:
     post:
       summary: 액세스 토큰 갱신
@@ -198,7 +198,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-  
+
   schemas:
     NewsList:
       type: object
@@ -206,7 +206,7 @@ components:
         items:
           type: array
           items: { $ref: "#/components/schemas/NewsItem" }
-    
+
     NewsItem:
       type: object
       properties:
@@ -214,7 +214,7 @@ components:
         title: { type: string }
         summary: { type: string }
         image: { type: string, format: uri }
-    
+
     # 인증 관련 스키마
     SignupRequest:
       type: object
@@ -235,7 +235,7 @@ components:
           type: string
           minLength: 2
           description: 사용자 이름
-    
+
     LoginRequest:
       type: object
       required:
@@ -249,7 +249,7 @@ components:
         password:
           type: string
           description: 비밀번호
-    
+
     User:
       type: object
       properties:
@@ -267,7 +267,7 @@ components:
           type: string
           format: date-time
           description: 가입 일시
-    
+
     AuthResponse:
       type: object
       properties:
@@ -279,7 +279,7 @@ components:
         refreshToken:
           type: string
           description: JWT 리프레시 토큰 (유효기간 7일)
-    
+
     Error:
       type: object
       properties:

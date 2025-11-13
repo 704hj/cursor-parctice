@@ -58,7 +58,7 @@ export default function AuthDemoPage() {
     <main style={{ padding: 40, maxWidth: 600, margin: "0 auto" }}>
       <h1 style={{ marginBottom: 20 }}>🔐 인증 API 데모</h1>
       <p style={{ color: "#666", marginBottom: 30 }}>
-        ✨ openapi.yaml → AI가 훅 생성 → 여기서 사용!
+        openapi.yaml → AI가 훅 생성 → 여기서 사용!
       </p>
 
       {isAuthenticated && currentUser ? (
@@ -258,12 +258,10 @@ export default function AuthDemoPage() {
           >
             <strong>💡 테스트용:</strong>
             <br />
-            Mock 서버가 실행 중이면 아무 값이나 입력해도 성공 응답을
-            받습니다.
+            Mock 서버가 실행 중이면 아무 값이나 입력해도 성공 응답을 받습니다.
           </div>
         </div>
       )}
     </main>
   );
 }
-
