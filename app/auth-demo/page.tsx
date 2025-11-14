@@ -73,10 +73,19 @@ export default function AuthDemoPage() {
         >
           <h2 style={{ marginTop: 0, color: "#4CAF50" }}>로그인됨</h2>
           <div style={{ marginBottom: 16 }}>
+            <strong>ID:</strong> {currentUser.id}
+          </div>
+          <div style={{ marginBottom: 16 }}>
             <strong>이메일:</strong> {currentUser.email}
           </div>
           <div style={{ marginBottom: 16 }}>
             <strong>이름:</strong> {currentUser.name}
+          </div>
+          <div style={{ marginBottom: 24 }}>
+            <strong>가입일:</strong>{" "}
+            {currentUser.createdAt
+              ? new Date(currentUser.createdAt).toLocaleString("ko-KR")
+              : "-"}
           </div>
           <button
             onClick={handleLogout}
